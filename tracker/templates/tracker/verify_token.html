@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="card-title text-center">Verify Your Email</h3>
+                <hr>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <p class="text-muted text-center">Enter the token sent to your email address.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Verification Token</label>
+                        <input type="text" name="token" class="form-control" placeholder="Paste your token here" required>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-primary" type="submit">Verify Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

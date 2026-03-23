@@ -118,3 +118,37 @@ def edit_transaction(request, transaction_id):
         'form': form,
         'transaction': transaction
     })
+
+# ----------- ALLOCATED FUNDS ----------------
+@login_required
+def allocated_funds(request):
+    transactions = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='allocated'
+    ).order_by('-date')
+
+    total_allocated = transactions.aggregate(
+        Sum('amount'))['amount__sum'] or 0
+
+    context = {
+        'transactions': transactions,
+        'total_allocated': total_allocated,
+    }
+    return render(request, 'tracker/allocated_funds.html', context)
+
+# --------------- EXPENSES --------------------
+@login_required
+def expenses(request):
+    transactions = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='expense'
+    ).order_by('-date')
+
+    total_expenses = transactions.aggregate(
+        Sum('amount'))['amount__sum'] or 0
+
+    context = {
+        'transactions': transactions,
+        'total_expenses': total_expenses,
+    }
+    return render(request, 'tracker/expenses.html', context)

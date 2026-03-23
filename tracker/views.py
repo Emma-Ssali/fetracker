@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -58,6 +59,7 @@ def verify_token(request):
 def dashboard(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
+    # ------ -calculate totals first ---------- 
     total_income = transactions.filter(transaction_type='income').aggregate(
         Sum('amount'))['amount__sum'] or 0
     total_allocated = transactions.filter(
@@ -66,6 +68,11 @@ def dashboard(request):
     total_expenses = transactions.filter(transaction_type='expense').aggregate(
         Sum('amount'))['amount__sum'] or 0
     remaining_allocated = total_allocated - total_expenses
+
+    # Pagination — 10 transactions per page
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    transactions = paginator.get_page(page_number)
 
     context = {
         'transactions': transactions,

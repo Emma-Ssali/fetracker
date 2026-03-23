@@ -10,4 +10,5 @@ urlpatterns = [
     path('edit-transaction/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
     path('allocated-funds/', views.allocated_funds, name='allocated_funds'),
     path('expenses/', views.expenses, name='expenses'),
+    path('logout/', views.custom_logout, name='logout'),
 ]

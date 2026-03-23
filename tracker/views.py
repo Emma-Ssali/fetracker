@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
+from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -159,3 +160,8 @@ def expenses(request):
         'total_expenses': total_expenses,
     }
     return render(request, 'tracker/expenses.html', context)
+
+# ------- LOGOUT ---------
+def custom_logout(request):
+    auth_logout(request)
+    return redirect('login')

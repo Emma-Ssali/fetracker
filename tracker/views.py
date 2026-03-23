@@ -98,3 +98,23 @@ def delete_transaction(request, transaction_id):
     transaction.delete()
     messages.success(request, 'Transaction deleted successfully!')
     return redirect('dashboard')
+
+# -------- EDIT ----------------
+@login_required
+def edit_transaction(request, transaction_id):
+    transaction = Transaction.objects.get(
+        id=transaction_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, instance=transaction)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Transaction updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = TransactionForm(instance=transaction)
+    
+    return render(request, 'tracker/edit_transaction.html', {
+        'form': form,
+        'transaction': transaction
+    })

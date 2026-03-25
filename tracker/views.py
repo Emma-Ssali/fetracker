@@ -130,36 +130,42 @@ def edit_transaction(request, transaction_id):
 # ----------- ALLOCATED FUNDS ----------------
 @login_required
 def allocated_funds(request):
-    transactions = Transaction.objects.filter(
+    all_transactions = Transaction.objects.filter(
         user=request.user,
         transaction_type='allocated'
     ).order_by('-date')
 
-    total_allocated = transactions.aggregate(
+    total_allocated = all_transactions.aggregate(
         Sum('amount'))['amount__sum'] or 0
 
-    context = {
+    paginator = Paginator(all_transactions, 10)
+    page_number = request.GET.get('page')
+    transactions = paginator.get_page(page_number)
+
+    return render(request, 'tracker/allocated_funds.html', {
         'transactions': transactions,
         'total_allocated': total_allocated,
-    }
-    return render(request, 'tracker/allocated_funds.html', context)
+    })
 
 # --------------- EXPENSES --------------------
 @login_required
 def expenses(request):
-    transactions = Transaction.objects.filter(
+    all_transactions = Transaction.objects.filter(
         user=request.user,
         transaction_type='expense'
     ).order_by('-date')
 
-    total_expenses = transactions.aggregate(
+    total_expenses = all_transactions.aggregate(
         Sum('amount'))['amount__sum'] or 0
 
-    context = {
+    paginator = Paginator(all_transactions, 10)
+    page_number = request.GET.get('page')
+    transactions = paginator.get_page(page_number)
+
+    return render(request, 'tracker/expenses.html', {
         'transactions': transactions,
         'total_expenses': total_expenses,
-    }
-    return render(request, 'tracker/expenses.html', context)
+    })
 
 # ------- LOGOUT ---------
 def custom_logout(request):

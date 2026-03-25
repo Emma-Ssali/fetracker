@@ -70,6 +70,14 @@ def dashboard(request):
         Sum('amount'))['amount__sum'] or 0
     remaining_allocated = total_allocated - total_expenses
 
+    #Step 3 — category breakdown        ← ADD THIS BLOCK HERE
+    category_breakdown = (
+        transactions
+        .filter(transaction_type='expense')
+        .values('category')
+        .annotate(total=Sum('amount'))
+        .order_by('-total')
+    )
     # Pagination — 10 transactions per page
     paginator = Paginator(transactions, 10)
     page_number = request.GET.get('page')
@@ -81,6 +89,7 @@ def dashboard(request):
         'total_allocated': total_allocated,
         'total_expenses': total_expenses,
         'remaining_allocated': remaining_allocated,
+        'category_breakdown': category_breakdown,
     }
     return render(request, 'tracker/dashboard.html', context)
 

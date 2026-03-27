@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from .models import Transaction, EmailVerificationToken
 from .forms import CustomRegisterForm, TransactionForm
+from datetime import datetime, date
 
 
 # Create your views here.
@@ -58,9 +59,34 @@ def verify_token(request):
 # <------- DASHBOARD ---------->
 @login_required
 def dashboard(request):
+    # ------ Date filtering ------------------
+    start_date = request.GET.get('start_date', '').strip()
+    end_date   = request.GET.get('end_date', '').strip()
+    month      = request.GET.get('month', '').strip()
+
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
-    # ------ -calculate totals first ---------- 
+    # Apply filters
+    if month:
+        try:
+            parsed = datetime.strptime(month, '%Y-%m')
+            transactions = transactions.filter(
+                date__year=parsed.year,
+                date__month=parsed.month
+            )
+        except ValueError:
+            pass
+    elif start_date and end_date:
+        transactions = transactions.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        )
+    elif start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    elif end_date:
+        transactions = transactions.filter(date__lte=end_date)
+        
+    # -------calculate totals first ---------- 
     total_income = transactions.filter(transaction_type='income').aggregate(
         Sum('amount'))['amount__sum'] or 0
     total_allocated = transactions.filter(
@@ -90,6 +116,9 @@ def dashboard(request):
         'total_expenses': total_expenses,
         'remaining_allocated': remaining_allocated,
         'category_breakdown': category_breakdown,
+        'start_date':         start_date or '',
+        'end_date':           end_date or '',
+        'month':              month or '',
     }
     return render(request, 'tracker/dashboard.html', context)
 

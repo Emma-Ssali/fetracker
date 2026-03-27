@@ -15,6 +15,73 @@
     </a>
 </div>
 
+<!-- Date Filter Bar -->
+<div style="background:white; border-radius:14px; padding:16px 20px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.06); margin-bottom:16px;">
+    <form method="GET" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+
+        <!-- Month picker -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:11px; font-weight:600; color:#888;
+                          text-transform:uppercase; letter-spacing:0.5px;">Filter by Month</label>
+            <input type="month" name="month" value="{{ month }}"
+                   style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px;
+                          font-size:13px; color:#1a1a2e; outline:none;">
+        </div>
+
+        <div style="color:#ccc; font-size:18px; padding-bottom:6px;">or</div>
+
+        <!-- Custom date range -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:11px; font-weight:600; color:#888;
+                          text-transform:uppercase; letter-spacing:0.5px;">From</label>
+            <input type="date" name="start_date" value="{{ start_date }}"
+                   style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px;
+                          font-size:13px; color:#1a1a2e; outline:none;">
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:11px; font-weight:600; color:#888;
+                          text-transform:uppercase; letter-spacing:0.5px;">To</label>
+            <input type="date" name="end_date" value="{{ end_date }}"
+                   style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px;
+                          font-size:13px; color:#1a1a2e; outline:none;">
+        </div>
+
+        <!-- Buttons -->
+        <button type="submit"
+                style="background:#1a1a2e; color:white; padding:8px 18px;
+                       border:none; border-radius:8px; font-size:13px;
+                       font-weight:600; cursor:pointer; align-self:flex-end;">
+            Apply Filter
+        </button>
+
+        <a href="{% url 'dashboard' %}"
+           style="background:#f0f2f5; color:#888; padding:8px 16px;
+                  border-radius:8px; font-size:13px; font-weight:600;
+                  text-decoration:none; align-self:flex-end;">
+            Clear
+        </a>
+
+    </form>
+
+    <!-- Active filter indicator -->
+    {% if month or start_date and end_date %}
+    <div style="margin-top:10px; font-size:12px; color:#2193b0; font-weight:600;">
+        {% if month %}
+            Showing: {{ month }}
+        {% else %}
+            Showing: {{ start_date }} to {{ end_date }}
+        {% endif %}
+        &nbsp;·&nbsp;
+        <a href="{% url 'dashboard' %}" style="color:#ef4444; text-decoration:none;">
+            Clear filter
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+
 <!-- Summary Cards -->
 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;">
 
@@ -279,6 +346,27 @@
                 n:val, duration:1.5, delay:0.3, ease:"power1.out",
                 onUpdate() { el.textContent = "UGX " + Math.round(obj.n).toLocaleString(); }
             });
+        }
+    });
+</script>
+
+<script>
+    // When month is selected, clear the date range fields
+    document.querySelector('input[name="month"]').addEventListener('change', function() {
+        if (this.value) {
+            document.querySelector('input[name="start_date"]').value = '';
+            document.querySelector('input[name="end_date"]').value   = '';
+        }
+    });
+    // When date range is used, clear the month field
+    document.querySelector('input[name="start_date"]').addEventListener('change', function() {
+        if (this.value) {
+            document.querySelector('input[name="month"]').value = '';
+        }
+    });
+    document.querySelector('input[name="end_date"]').addEventListener('change', function() {
+        if (this.value) {
+            document.querySelector('input[name="month"]').value = '';
         }
     });
 </script>

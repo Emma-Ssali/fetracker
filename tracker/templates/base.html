@@ -114,6 +114,7 @@
         <div class="d-flex align-items-center gap-2">
             {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm">Dashboard</a>
+                <a href="{% url 'income' %}" class="btn btn-outline-light btn-sm">Income</a>
                 <a href="{% url 'allocated_funds' %}" class="btn btn-outline-light btn-sm">Allocated</a>
                 <a href="{% url 'expenses' %}" class="btn btn-outline-light btn-sm">Expenses</a>
                 <form method="POST" action="{% url 'logout' %}" style="display:inline;">

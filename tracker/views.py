@@ -209,3 +209,22 @@ def expenses(request):
 def custom_logout(request):
     auth_logout(request)
     return redirect('login')
+
+# ------- LOGIN ----------
+def income(request):
+    transactions = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='income'
+    ).order_by('-date')
+
+    total_income = transactions.aggregate(
+        Sum('amount'))['amount__sum'] or 0
+
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    transactions = paginator.get_page(page_number)
+
+    return render(request, 'tracker/income.html', {
+        'transactions': transactions,
+        'total_income': total_income,
+    })

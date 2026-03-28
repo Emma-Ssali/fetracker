@@ -82,6 +82,49 @@
 
 </div>
 
+<!-- Search Bar -->
+<form method="GET" style="margin-bottom:16px; display:flex; gap:10px; align-items:center;">
+    <!-- Keep existing filters when searching -->
+    {% if month %}<input type="hidden" name="month" value="{{ month }}">{% endif %}
+    {% if date_from %}<input type="hidden" name="date_from" value="{{ date_from }}">{% endif %}
+    {% if date_to %}<input type="hidden" name="date_to" value="{{ date_to }}">{% endif %}
+
+    <div style="flex:1; position:relative;">
+        <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%);
+                     font-size:14px; color:#888;">🔍</span>
+        <input type="text" name="search" value="{{ search }}"
+               placeholder="Search by description or category..."
+               style="width:100%; padding:10px 12px 10px 36px; border:1px solid #e5e7eb;
+                      border-radius:10px; font-size:13px; color:#1a1a2e; outline:none;
+                      transition: border 0.2s;"
+               onfocus="this.style.borderColor='#2193b0'"
+               onblur="this.style.borderColor='#e5e7eb'">
+    </div>
+
+    <button type="submit"
+            style="background:#1a1a2e; color:white; padding:10px 20px;
+                   border:none; border-radius:10px; font-size:13px;
+                   font-weight:600; cursor:pointer; white-space:nowrap;">
+        Search
+    </button>
+
+    {% if search %}
+    <a href="{% url 'dashboard' %}{% if month %}?month={{ month }}{% elif date_from %}?date_from={{ date_from }}&date_to={{ date_to }}{% endif %}"
+       style="background:#f0f2f5; color:#555; padding:10px 16px;
+              border-radius:10px; font-size:13px; font-weight:600;
+              text-decoration:none; white-space:nowrap;">
+        ✕ Clear
+    </a>
+    {% endif %}
+</form>
+
+{% if search %}
+<div style="font-size:12px; color:#2193b0; font-weight:500; margin-bottom:12px;">
+    Showing results for: "<strong>{{ search }}</strong>"
+    — {{ transactions.paginator.count }} result{{ transactions.paginator.count|pluralize }} found
+</div>
+{% endif %}
+
 <!-- Summary Cards -->
 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;">
 

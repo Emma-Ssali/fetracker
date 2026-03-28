@@ -4,7 +4,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from .models import Transaction, EmailVerificationToken
@@ -59,12 +59,21 @@ def verify_token(request):
 # <------- DASHBOARD ---------->
 @login_required
 def dashboard(request):
+
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    # ------- Search -------------------------
+    search = request.GET.get('search', '').strip()
+    if search:
+        transactions = transactions.filter(
+            Q(description__icontains=search) |
+            Q(category__icontains=search)
+        )
+
     # ------ Date filtering ------------------
     start_date = request.GET.get('start_date', '').strip()
     end_date   = request.GET.get('end_date', '').strip()
     month      = request.GET.get('month', '').strip()
-
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
     # Apply filters
     if month:
@@ -119,6 +128,7 @@ def dashboard(request):
         'start_date':         start_date or '',
         'end_date':           end_date or '',
         'month':              month or '',
+        'search':             search or '',
     }
     return render(request, 'tracker/dashboard.html', context)
 
@@ -168,41 +178,57 @@ def edit_transaction(request, transaction_id):
 # ----------- ALLOCATED FUNDS ----------------
 @login_required
 def allocated_funds(request):
-    all_transactions = Transaction.objects.filter(
+    search = request.GET.get('search', '').strip()
+    transactions = Transaction.objects.filter(
         user=request.user,
         transaction_type='allocated'
     ).order_by('-date')
 
-    total_allocated = all_transactions.aggregate(
+    if search:
+        transactions = transactions.filter(
+            Q(description__icontains=search) |
+            Q(category__icontains=search)
+        )
+
+    total_allocated = transactions.aggregate(
         Sum('amount'))['amount__sum'] or 0
 
-    paginator = Paginator(all_transactions, 10)
+    paginator = Paginator(transactions, 10)
     page_number = request.GET.get('page')
     transactions = paginator.get_page(page_number)
 
     return render(request, 'tracker/allocated_funds.html', {
         'transactions': transactions,
         'total_allocated': total_allocated,
+        'search': search,
     })
 
 # --------------- EXPENSES --------------------
 @login_required
 def expenses(request):
-    all_transactions = Transaction.objects.filter(
+    search = request.GET.get('search', '').strip()
+    transactions = Transaction.objects.filter(
         user=request.user,
         transaction_type='expense'
     ).order_by('-date')
 
-    total_expenses = all_transactions.aggregate(
+    if search:
+        transactions = transactions.filter(
+            Q(description__icontains=search) |
+            Q(category__icontains=search)
+        )
+
+    total_expenses = transactions.aggregate(
         Sum('amount'))['amount__sum'] or 0
 
-    paginator = Paginator(all_transactions, 10)
+    paginator = Paginator(transactions, 10)
     page_number = request.GET.get('page')
     transactions = paginator.get_page(page_number)
 
     return render(request, 'tracker/expenses.html', {
         'transactions': transactions,
         'total_expenses': total_expenses,
+        'search': search,
     })
 
 # ------- LOGOUT ---------
@@ -212,10 +238,17 @@ def custom_logout(request):
 
 # ------- LOGIN ----------
 def income(request):
+    search = request.GET.get('search', '').strip()
     transactions = Transaction.objects.filter(
         user=request.user,
         transaction_type='income'
     ).order_by('-date')
+
+    if search:
+        transactions = transactions.filter(
+            Q(description__icontains=search) |
+            Q(category__icontains=search)
+        )
 
     total_income = transactions.aggregate(
         Sum('amount'))['amount__sum'] or 0
@@ -227,4 +260,5 @@ def income(request):
     return render(request, 'tracker/income.html', {
         'transactions': transactions,
         'total_income': total_income,
+        'search': search,
     })

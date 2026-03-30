@@ -12,4 +12,6 @@ urlpatterns = [
     path('expenses/', views.expenses, name='expenses'),
     path('logout/', views.custom_logout, name='logout'),
     path('income/', views.income, name='income'),
+    path('export/csv/', views.export_csv, name='export_csv'),
+    path('export/pdf/', views.export_pdf, name='export_pdf'),
 ]

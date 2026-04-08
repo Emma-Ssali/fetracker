@@ -14,4 +14,8 @@ urlpatterns = [
     path('income/', views.income, name='income'),
     path('export/csv/', views.export_csv, name='export_csv'),
     path('export/pdf/', views.export_pdf, name='export_pdf'),
+    path('password-reset/',                          views.password_reset_request,     name='password_reset_custom'),
+    path('password-reset/done/',                     views.password_reset_done_view,   name='password_reset_done_custom'),
+    path('password-reset/confirm/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm_custom'),
+    path('password-reset/complete/',                 views.password_reset_complete_view, name='password_reset_complete_custom'),
 ]

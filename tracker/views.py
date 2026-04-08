@@ -13,7 +13,7 @@ from django.db.models import Sum, Q
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from .models import Transaction, EmailVerificationToken
-from .forms import CustomRegisterForm, TransactionForm
+from .forms import CustomRegisterForm, ProfileUpdateForm, TransactionForm
 from datetime import datetime, date
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
@@ -481,3 +481,36 @@ def password_reset_confirm_view(request, uidb64, token):
     
 def password_reset_complete_view(request):
     return render(request, 'registration/password_reset_complete.html')
+
+# ----------- PROFILE VIEW -------------
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile')
+    else:
+        form = ProfileUpdateForm(instance=request.user)
+
+    # Account stats
+    total_transactions = Transaction.objects.filter(
+        user=request.user).count()
+    total_income = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='income').aggregate(
+        Sum('amount'))['amount__sum'] or 0
+    total_expenses = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='expense').aggregate(
+        Sum('amount'))['amount__sum'] or 0
+
+    context = {
+        'form': form,
+        'total_transactions': total_transactions,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'member_since': request.user.date_joined,
+    }
+    return render(request, 'tracker/profile.html', context)

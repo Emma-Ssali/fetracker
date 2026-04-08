@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Header -->
+<div style="margin-bottom:24px;">
+    <h5 style="font-weight:700; margin:0; font-size:18px;">👤 My Profile</h5>
+    <small style="color:#888;">Manage your account details</small>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
+
+    <!-- Update form -->
+    <div style="background:white; border-radius:14px; padding:28px;
+                box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+
+        <div style="text-align:center; margin-bottom:24px;">
+            <div style="width:72px; height:72px; border-radius:50%;
+                        background:linear-gradient(135deg,#1a1a2e,#2193b0);
+                        display:flex; align-items:center; justify-content:center;
+                        margin:0 auto 12px; font-size:28px; color:white; font-weight:700;">
+                {{ request.user.username|first|upper }}
+            </div>
+            <h5 style="font-weight:700; margin:0 0 4px;">{{ request.user.username }}</h5>
+            <small style="color:#888;">{{ request.user.email }}</small>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #f0f2f5; margin-bottom:20px;">
+
+        {% if messages %}
+            {% for message in messages %}
+            <div style="background:#dcfce7; color:#166534; padding:10px 14px;
+                        border-radius:8px; font-size:13px; margin-bottom:16px;
+                        font-weight:500;">
+                ✅ {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div style="margin-bottom:16px;">
+                <label style="font-size:11px; font-weight:600; color:#555;
+                              text-transform:uppercase; letter-spacing:0.5px;
+                              display:block; margin-bottom:6px;">
+                    Username
+                </label>
+                <input type="text" name="username"
+                       value="{{ form.username.value }}"
+                       style="width:100%; padding:10px 14px; border:1px solid #e5e7eb;
+                              border-radius:10px; font-size:14px; color:#1a1a2e;
+                              outline:none; box-sizing:border-box;"
+                       onfocus="this.style.borderColor='#2193b0'"
+                       onblur="this.style.borderColor='#e5e7eb'">
+                {% if form.username.errors %}
+                <div style="color:#ef4444; font-size:12px; margin-top:4px;">
+                    {{ form.username.errors|join:", " }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="font-size:11px; font-weight:600; color:#555;
+                              text-transform:uppercase; letter-spacing:0.5px;
+                              display:block; margin-bottom:6px;">
+                    Email Address
+                </label>
+                <input type="email" name="email"
+                       value="{{ form.email.value }}"
+                       style="width:100%; padding:10px 14px; border:1px solid #e5e7eb;
+                              border-radius:10px; font-size:14px; color:#1a1a2e;
+                              outline:none; box-sizing:border-box;"
+                       onfocus="this.style.borderColor='#2193b0'"
+                       onblur="this.style.borderColor='#e5e7eb'">
+                {% if form.email.errors %}
+                <div style="color:#ef4444; font-size:12px; margin-top:4px;">
+                    {{ form.email.errors|join:", " }}
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit"
+                    style="width:100%; padding:11px; background:#1a1a2e; color:white;
+                           border:none; border-radius:10px; font-size:14px;
+                           font-weight:700; cursor:pointer;">
+                Save Changes
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top:16px;">
+            <a href="{% url 'password_reset' %}"
+               style="color:#888; font-size:13px; text-decoration:none;">
+                Change password
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Account stats -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <div style="background:white; border-radius:14px; padding:24px;
+                    box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <div style="font-size:13px; font-weight:700; color:#1a1a2e;
+                        margin-bottom:16px;">📊 Account Statistics</div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between;
+                            padding-bottom:12px; border-bottom:1px solid #f0f2f5;">
+                    <span style="font-size:13px; color:#555;">Member since</span>
+                    <span style="font-size:13px; font-weight:600; color:#1a1a2e;">
+                        {{ member_since|date:"d M Y" }}
+                    </span>
+                </div>
+                <div style="display:flex; justify-content:space-between;
+                            padding-bottom:12px; border-bottom:1px solid #f0f2f5;">
+                    <span style="font-size:13px; color:#555;">Total transactions</span>
+                    <span style="font-size:13px; font-weight:600; color:#1a1a2e;">
+                        {{ total_transactions }}
+                    </span>
+                </div>
+                <div style="display:flex; justify-content:space-between;
+                            padding-bottom:12px; border-bottom:1px solid #f0f2f5;">
+                    <span style="font-size:13px; color:#555;">Total income</span>
+                    <span style="font-size:13px; font-weight:600; color:#11998e;">
+                        UGX {{ total_income|floatformat:0 }}
+                    </span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-size:13px; color:#555;">Total expenses</span>
+                    <span style="font-size:13px; font-weight:600; color:#ef4444;">
+                        UGX {{ total_expenses|floatformat:0 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#1a1a2e,#2193b0);
+                    border-radius:14px; padding:24px; color:white;">
+            <div style="font-size:13px; font-weight:700; margin-bottom:8px;
+                        opacity:0.85;">Account Status</div>
+            <div style="font-size:22px; font-weight:700; margin-bottom:4px;">
+                ✅ Active
+            </div>
+            <div style="font-size:12px; opacity:0.7;">
+                Email verified and account in good standing
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    gsap.from("div > div", {
+        opacity:0, y:20, duration:0.6, stagger:0.1, delay:0.2, ease:"power2.out"
+    });
+</script>
+
+{% endblock %}

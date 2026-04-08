@@ -117,6 +117,7 @@
                 <a href="{% url 'income' %}" class="btn btn-outline-light btn-sm">Income</a>
                 <a href="{% url 'allocated_funds' %}" class="btn btn-outline-light btn-sm">Allocated</a>
                 <a href="{% url 'expenses' %}" class="btn btn-outline-light btn-sm">Expenses</a>
+                <a href="{% url 'profile' %}" class="btn btn-outline-light btn-sm">👤 {{ user.username }}</a>
                 <form method="POST" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>

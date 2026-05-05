@@ -137,36 +137,98 @@
 </div>
 {% endif %}
 
-<!-- Summary Cards -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;">
+<!-- Summary Cards — money flow -->
+<div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:nowrap;">
 
-    <div style="background:linear-gradient(135deg,#11998e,#38ef7d); border-radius:14px;
-                padding:16px 18px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-        <div style="font-size:11px; opacity:0.85; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Income</div>
-        <div style="font-size:20px; font-weight:700;" id="income-val">UGX {{ total_income|floatformat:0 }}</div>
-        <div style="font-size:22px; margin-top:6px;">📈</div>
+    <!-- 1. Total Income -->
+    <div style="flex:1; background:linear-gradient(135deg,#11998e,#38ef7d);
+                border-radius:14px; padding:14px 16px; color:white;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <div style="font-size:11px; opacity:0.85; text-transform:uppercase;
+                    letter-spacing:0.5px; margin-bottom:4px;">💰 Income</div>
+        <div style="font-size:18px; font-weight:700;" id="income-val">
+            UGX {{ total_income|floatformat:0 }}
+        </div>
+        <div style="font-size:10px; opacity:0.75; margin-top:4px;">
+            Total received
+        </div>
     </div>
 
-    <div style="background:linear-gradient(135deg,#2193b0,#6dd5ed); border-radius:14px;
-                padding:16px 18px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-        <div style="font-size:11px; opacity:0.85; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Allocated</div>
-        <div style="font-size:20px; font-weight:700;" id="allocated-val">UGX {{ total_allocated|floatformat:0 }}</div>
-        <div style="font-size:22px; margin-top:6px;">💼</div>
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:#888; font-size:18px;">→</div>
+
+    <!-- 2. Available Income -->
+    <div style="flex:1; background:linear-gradient(135deg,#2193b0,#6dd5ed);
+                border-radius:14px; padding:14px 16px; color:white;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <div style="font-size:11px; opacity:0.85; text-transform:uppercase;
+                    letter-spacing:0.5px; margin-bottom:4px;">🏦 Available</div>
+        <div style="font-size:18px; font-weight:700;" id="available-val">
+            UGX {{ available_income|floatformat:0 }}
+        </div>
+        <div style="font-size:10px; opacity:0.75; margin-top:4px;">
+            Income minus allocations
+        </div>
+        {% if available_income < 0 %}
+        <div style="font-size:10px; margin-top:2px;">⚠️ Over-allocated!</div>
+        {% endif %}
     </div>
 
-    <div style="background:linear-gradient(135deg,#c0392b,#f39c12); border-radius:14px;
-                padding:16px 18px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-        <div style="font-size:11px; opacity:0.85; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Expenses</div>
-        <div style="font-size:20px; font-weight:700;" id="expenses-val">UGX {{ total_expenses|floatformat:0 }}</div>
-        <div style="font-size:22px; margin-top:6px;">📉</div>
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:#888; font-size:18px;">→</div>
+
+    <!-- 3. Allocated Funds -->
+    <div style="flex:1; background:linear-gradient(135deg,#8360c3,#2ebf91);
+                border-radius:14px; padding:14px 16px; color:white;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <div style="font-size:11px; opacity:0.85; text-transform:uppercase;
+                    letter-spacing:0.5px; margin-bottom:4px;">💼 Allocated</div>
+        <div style="font-size:18px; font-weight:700;" id="allocated-val">
+            UGX {{ total_allocated|floatformat:0 }}
+        </div>
+        <div style="font-size:10px; opacity:0.75; margin-top:4px;">
+            Set aside for spending
+        </div>
     </div>
 
-    <div style="background:{% if remaining_allocated >= 0 %}linear-gradient(135deg,#8360c3,#2ebf91){% else %}linear-gradient(135deg,#f7971e,#ffd200){% endif %};
-                border-radius:14px; padding:16px 18px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-        <div style="font-size:11px; opacity:0.85; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Remaining</div>
-        <div style="font-size:20px; font-weight:700;" id="remaining-val">UGX {{ remaining_allocated|floatformat:0 }}</div>
-        <div style="font-size:22px; margin-top:6px;">{% if remaining_allocated >= 0 %}✅{% else %}⚠️{% endif %}</div>
-        {% if remaining_allocated < 0 %}<div style="font-size:10px; opacity:0.9; margin-top:4px;">Over budget!</div>{% endif %}
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:#888; font-size:18px;">→</div>
+
+    <!-- 4. Expenses -->
+    <div style="flex:1; background:linear-gradient(135deg,#c0392b,#f39c12);
+                border-radius:14px; padding:14px 16px; color:white;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <div style="font-size:11px; opacity:0.85; text-transform:uppercase;
+                    letter-spacing:0.5px; margin-bottom:4px;">📉 Expenses</div>
+        <div style="font-size:18px; font-weight:700;" id="expenses-val">
+            UGX {{ total_expenses|floatformat:0 }}
+        </div>
+        <div style="font-size:10px; opacity:0.75; margin-top:4px;">
+            Spent from allocations
+        </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:#888; font-size:18px;">→</div>
+
+    <!-- 5. Remaining Allocated -->
+    <div style="flex:1; border-radius:14px; padding:14px 16px; color:white;
+                box-shadow:0 4px 12px rgba(0,0,0,0.1);
+                background:{% if remaining_allocated >= 0 %}linear-gradient(135deg,#f7971e,#ffd200){% else %}linear-gradient(135deg,#c0392b,#e74c3c){% endif %};">
+        <div style="font-size:11px; opacity:0.85; text-transform:uppercase;
+                    letter-spacing:0.5px; margin-bottom:4px;">
+            {% if remaining_allocated >= 0 %}✅{% else %}⚠️{% endif %} Remaining
+        </div>
+        <div style="font-size:18px; font-weight:700;" id="remaining-val">
+            UGX {{ remaining_allocated|floatformat:0 }}
+        </div>
+        <div style="font-size:10px; opacity:0.75; margin-top:4px;">
+            {% if remaining_allocated >= 0 %}
+                Allocated funds left
+            {% else %}
+                Over budget!
+            {% endif %}
+        </div>
     </div>
 
 </div>
@@ -389,6 +451,7 @@
 
     const counters = [
         { id:"income-val",    val:{{ total_income }} },
+        { id: "available-val", val: {{ available_income }} },
         { id:"allocated-val", val:{{ total_allocated }} },
         { id:"expenses-val",  val:{{ total_expenses }} },
         { id:"remaining-val", val:{{ remaining_allocated }} },

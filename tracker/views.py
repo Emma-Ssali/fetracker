@@ -72,76 +72,80 @@ def verify_token(request):
 # <------- DASHBOARD ---------->
 @login_required
 def dashboard(request):
+    all_transactions = Transaction.objects.filter(
+        user=request.user).order_by('-date')
 
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-
-    # ------- Search -------------------------
+    # ── Search ──────────────────────────────────────────
     search = request.GET.get('search', '').strip()
     if search:
-        transactions = transactions.filter(
+        all_transactions = all_transactions.filter(
             Q(description__icontains=search) |
             Q(category__icontains=search)
         )
 
-    # ------ Date filtering ------------------
-    start_date = request.GET.get('start_date', '').strip()
-    end_date   = request.GET.get('end_date', '').strip()
-    month      = request.GET.get('month', '').strip()
+    # ── Date filtering ──────────────────────────────────
+    date_from = request.GET.get('date_from', '').strip()
+    date_to   = request.GET.get('date_to',   '').strip()
+    month     = request.GET.get('month',     '').strip()
 
-    # Apply filters
     if month:
         try:
-            parsed = datetime.strptime(month, '%Y-%m')
-            transactions = transactions.filter(
-                date__year=parsed.year,
-                date__month=parsed.month
-            )
+            year, mon = month.split('-')
+            all_transactions = all_transactions.filter(
+                date__year=int(year), date__month=int(mon))
         except ValueError:
             pass
-    elif start_date and end_date:
-        transactions = transactions.filter(
-            date__gte=start_date,
-            date__lte=end_date
-        )
-    elif start_date:
-        transactions = transactions.filter(date__gte=start_date)
-    elif end_date:
-        transactions = transactions.filter(date__lte=end_date)
-        
-    # -------calculate totals first ---------- 
-    total_income = transactions.filter(transaction_type='income').aggregate(
+    elif date_from and date_to:
+        all_transactions = all_transactions.filter(
+            date__gte=date_from, date__lte=date_to)
+    elif date_from:
+        all_transactions = all_transactions.filter(date__gte=date_from)
+    elif date_to:
+        all_transactions = all_transactions.filter(date__lte=date_to)
+
+    # ── Totals ──────────────────────────────────────────
+    total_income = all_transactions.filter(
+        transaction_type='income').aggregate(
         Sum('amount'))['amount__sum'] or 0
-    total_allocated = transactions.filter(
+
+    total_allocated = all_transactions.filter(
         transaction_type='allocated').aggregate(
         Sum('amount'))['amount__sum'] or 0
-    total_expenses = transactions.filter(transaction_type='expense').aggregate(
-        Sum('amount'))['amount__sum'] or 0
-    remaining_allocated = total_allocated - total_expenses
 
-    #Step 3 — category breakdown        ← ADD THIS BLOCK HERE
+    total_expenses = all_transactions.filter(
+        transaction_type='expense').aggregate(
+        Sum('amount'))['amount__sum'] or 0
+
+    # ── New flow calculations ───────────────────────────
+    available_income    = total_income - total_allocated   # income not yet allocated
+    remaining_allocated = total_allocated - total_expenses # allocated not yet spent
+
+    # ── Category breakdown ──────────────────────────────
     category_breakdown = (
-        transactions
+        all_transactions
         .filter(transaction_type='expense')
         .values('category')
         .annotate(total=Sum('amount'))
         .order_by('-total')
     )
-    # Pagination — 10 transactions per page
-    paginator = Paginator(transactions, 10)
+
+    # ── Pagination ──────────────────────────────────────
+    paginator = Paginator(all_transactions, 10)
     page_number = request.GET.get('page')
     transactions = paginator.get_page(page_number)
 
     context = {
-        'transactions': transactions,
-        'total_income': total_income,
-        'total_allocated': total_allocated,
-        'total_expenses': total_expenses,
+        'transactions':        transactions,
+        'total_income':        total_income,
+        'total_allocated':     total_allocated,
+        'total_expenses':      total_expenses,
+        'available_income':    available_income,
         'remaining_allocated': remaining_allocated,
-        'category_breakdown': category_breakdown,
-        'start_date':         start_date or '',
-        'end_date':           end_date or '',
-        'month':              month or '',
-        'search':             search or '',
+        'category_breakdown':  category_breakdown,
+        'date_from':           date_from or '',
+        'date_to':             date_to   or '',
+        'month':               month     or '',
+        'search':              search    or '',
     }
     return render(request, 'tracker/dashboard.html', context)
 
@@ -153,6 +157,32 @@ def add_transaction(request):
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user  # link to logged-in user
+            transaction.save()
+            messages.success(request, 'Transaction added successfully!')
+            return redirect('dashboard')
+        
+            # Warn if allocating more than available income
+            if transaction.transaction_type == 'allocated':
+                total_income = Transaction.objects.filter(
+                    user=request.user,
+                    transaction_type='income'
+                ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+                total_already_allocated = Transaction.objects.filter(
+                    user=request.user,
+                    transaction_type='allocated'
+                ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+                available = total_income - total_already_allocated
+
+                if transaction.amount > available:
+                    messages.warning(
+                        request,
+                        f'Warning: You are allocating UGX {transaction.amount:,.0f} '
+                        f'but only UGX {available:,.0f} is available from income. '
+                        f'Transaction saved but you are over-allocated.'
+                    )
+
             transaction.save()
             messages.success(request, 'Transaction added successfully!')
             return redirect('dashboard')

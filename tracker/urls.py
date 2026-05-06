@@ -19,4 +19,6 @@ urlpatterns = [
     path('password-reset/confirm/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm_custom'),
     path('password-reset/complete/',                 views.password_reset_complete_view, name='password_reset_complete_custom'),
     path('profile/', views.profile, name='profile'),
+    path('categories/', views.categories, name='categories'),
+    path('categories/delete/<int:category_id>/', views.delete_category, name='delete_category'),
 ]

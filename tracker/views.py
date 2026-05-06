@@ -12,7 +12,7 @@ from django.contrib.auth import login
 from django.db.models import Sum, Q
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
-from .models import Transaction, EmailVerificationToken
+from .models import Category, Transaction, EmailVerificationToken
 from .forms import CustomRegisterForm, ProfileUpdateForm, TransactionForm
 from datetime import datetime, date
 from django.http import HttpResponse
@@ -544,3 +544,32 @@ def profile(request):
         'member_since': request.user.date_joined,
     }
     return render(request, 'tracker/profile.html', context)
+
+@login_required
+def categories(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            existing = Category.objects.filter(
+                user=request.user, name__iexact=name).exists()
+            if existing:
+                messages.error(request, f'"{name}" already exists.')
+            else:
+                Category.objects.create(user=request.user, name=name)
+                messages.success(request, f'"{name}" added!')
+        return redirect('categories')
+
+    user_categories    = Category.objects.filter(user=request.user)
+    default_categories = Transaction.CATEGORY_CHOICES
+    return render(request, 'tracker/categories.html', {
+        'user_categories':    user_categories,
+        'default_categories': default_categories,
+    })
+
+@login_required
+def delete_category(request, category_id):
+    category = Category.objects.get(id=category_id, user=request.user)
+    name = category.name
+    category.delete()
+    messages.success(request, f'"{name}" deleted.')
+    return redirect('categories')

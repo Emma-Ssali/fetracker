@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Transaction
+from .models import Transaction, Category
 
 class CustomRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text='A verification token will be sent to this email.')
@@ -17,6 +17,23 @@ class TransactionForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+        def __init__(self, *args, user=None, **kwargs):
+            super().__init__(*args, **kwargs)
+            if user:
+                custom = [
+                    (c.name.lower().replace(' ', '_'), c.name)
+                    for c in Category.objects.filter(user=user)
+                ]
+                if custom:
+                    all_choices = (
+                        Transaction.CATEGORY_CHOICES +
+                        [('── Your Custom Categories ──', []), ] +
+                        custom
+                    )
+                else:
+                    all_choices = Transaction.CATEGORY_CHOICES
+                self.fields['category'].choices = all_choices
 
 class ProfileUpdateForm(forms.ModelForm):
     email = forms.EmailField(required=True)
